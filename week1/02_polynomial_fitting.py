@@ -13,13 +13,13 @@ print("Numerical Methods vs Neural Networks")
 print("="*50)
 
 # 1. 데이터 준비 (Data Preparation)
-# 01_hello_nn.py와 동일한 데이터
+# y = 3x + 2 데이터
 X = np.array([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], dtype=float)
-y_clean = np.array([-3.0, -1.0, 1.0, 3.0, 5.0, 7.0], dtype=float)
+y_clean = np.array([-1.0, 2.0, 5.0, 8.0, 11.0, 14.0], dtype=float)
 
 # Add random noise (scale=1.0)
 np.random.seed(42) # For reproducibility
-noise = np.random.normal(loc=0.0, scale=1.0, size=len(X))
+noise = np.random.normal(loc=0.0, scale=5, size=len(X))
 y = y_clean + noise
 
 print("Data:")
@@ -41,7 +41,7 @@ slope_poly = coefficients[0]
 intercept_poly = coefficients[1]
 
 print(f"Result: y = {slope_poly:.4f}x + {intercept_poly:.4f}")
-print(f"Expected: y = 2.0000x + -1.0000")
+print(f"Expected: y = 3.0000x + 2.0000")
 
 # 예측
 new_x = 10.0
@@ -95,7 +95,7 @@ plt.ylabel('y')
 plt.legend()
 plt.grid(True)
 
-save_path = os.path.join(output_dir, '02_numerical_fitting.png')
+save_path = os.path.join(output_dir, '02_numerical_fitting_3x2_noise5.png')
 plt.savefig(save_path)
 print(f"\nPlot saved to {save_path}")
 
