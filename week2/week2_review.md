@@ -17,10 +17,10 @@
 - [x] SciPy 방법과 TensorFlow를 비교했다
 
 ### 스스로 해보기
-- [x] learning_rate를 바꿔보기 → `exp_01_learning_rate.py`
-- [x] epochs를 바꿔보기 → `exp_02_epochs.py`
-- [x] 노이즈 크기를 바꿔보기 → `exp_03_noise.py`
-- [x] 다른 데이터로 실험하기 → `exp_04_different_data.py`
+- [o] learning_rate를 바꿔보기 → `exp_01_learning_rate.py`
+- [o] epochs를 바꿔보기 → `exp_02_epochs.py`
+- [o] 노이즈 크기를 바꿔보기 → `exp_03_noise.py`
+- [o] 다른 데이터로 실험하기 → `exp_04_different_data.py`
 
 ---
 
