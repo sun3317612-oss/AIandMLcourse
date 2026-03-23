@@ -3,18 +3,18 @@
 ## 학습 체크리스트
 
 ### 개념 이해
-- [x] 지도/비지도/강화 학습의 차이를 설명할 수 있다
-- [x] 정규화가 왜 필요한지 이해했다
-- [x] 손실 함수와 최적화의 관계를 안다
-- [x] Gradient Descent의 원리를 이해한다
-- [x] Epoch의 의미를 안다
+- [o] 지도/비지도/강화 학습의 차이를 설명할 수 있다
+- [o] 정규화가 왜 필요한지 이해했다
+- [o] 손실 함수와 최적화의 관계를 안다
+- [o] Gradient Descent의 원리를 이해한다
+- [o] Epoch의 의미를 안다
 
 ### 실습 완료
-- [x] K-Means 군집화를 실행하고 결과를 해석했다
-- [x] 데이터 정규화 전후를 비교했다
-- [x] Gradient Descent 시각화를 관찰했다
-- [x] TensorFlow로 선형 회귀를 구현했다
-- [x] SciPy 방법과 TensorFlow를 비교했다
+- [o] K-Means 군집화를 실행하고 결과를 해석했다
+- [o] 데이터 정규화 전후를 비교했다
+- [o] Gradient Descent 시각화를 관찰했다
+- [o] TensorFlow로 선형 회귀를 구현했다
+- [o] SciPy 방법과 TensorFlow를 비교했다
 
 ### 스스로 해보기
 - [o] learning_rate를 바꿔보기 → `exp_01_learning_rate.py`
