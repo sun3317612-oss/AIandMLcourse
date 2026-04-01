@@ -25,3 +25,11 @@ def test_parse_layer_string_invalid_raises():
         parse_layer_string("[]")
     with pytest.raises(ValueError):
         parse_layer_string("[0, 64]")  # 0개 유닛 불가
+
+def test_training_thread_stop_flag():
+    """stop() 호출 후 _stop이 True가 되는지 확인"""
+    from week4_explorer import TrainingThread
+    thread = TrainingThread.__new__(TrainingThread)
+    thread._stop = False
+    thread.stop()
+    assert thread._stop is True
