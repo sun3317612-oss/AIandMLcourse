@@ -323,6 +323,7 @@ class Lab1Widget(QWidget):
         self._clear_charts()
 
         func_name  = self._func_combo.currentText()
+        self._current_func_name = func_name
         epochs     = self._epoch_slider.value()
         lr         = float(self._lr_combo.currentText())
         activation = self._act_combo.currentText()
@@ -370,22 +371,25 @@ class Lab1Widget(QWidget):
         self._loss_canvas.draw()
 
     def _on_done(self, model):
-        func_name = self._func_combo.currentText()
-        _, _, x_te, y_te = make_lab1_data(func_name)
-        y_pred = model.predict(x_te, verbose=0)
+        try:
+            func_name = self._current_func_name
+            _, _, x_te, y_te = make_lab1_data(func_name)
+            y_pred = model.predict(x_te, verbose=0)
 
-        fig = self._pred_canvas.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
-        ax.plot(x_te, y_te,   color='green',  label='실제값')
-        ax.plot(x_te, y_pred, color='orange', linestyle='--', label='예측값')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_title(f'{func_name} 근사 결과')
-        ax.legend(fontsize=8)
-        self._pred_canvas.draw()
+            fig = self._pred_canvas.figure
+            fig.clear()
+            ax = fig.add_subplot(111)
+            ax.plot(x_te, y_te,   color='green',  label='실제값')
+            ax.plot(x_te, y_pred, color='orange', linestyle='--', label='예측값')
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_title(f'{func_name} 근사 결과')
+            ax.legend(fontsize=8)
+            self._pred_canvas.draw()
 
-        self._status.showMessage("Lab1 학습 완료")
+            self._status.showMessage("Lab1 학습 완료")
+        except Exception as e:
+            self._status.showMessage(f"결과 표시 오류: {e}")
 
     def stop_training(self):
         """MainWindow closeEvent에서 호출"""
