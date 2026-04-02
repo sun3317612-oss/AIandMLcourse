@@ -870,4 +870,226 @@ class Lab3Widget(QWidget):
     def stop_training(self):
         if self._thread and self._thread.isRunning():
             self._thread.stop()
+
+
+# ─────────────────────────────────────────────
+# Lab 4 — 진자 주기
+# ─────────────────────────────────────────────
+
+def calculate_pendulum_period(L: float, theta0_deg: float) -> float:
+    """
+    타원 적분 근사로 진자 주기 계산.
+    T = 2π√(L/g) * (1 + θ²/16 + 11θ⁴/3072)
+    """
+    theta_rad = np.deg2rad(theta0_deg)
+    T_small   = 2 * np.pi * np.sqrt(L / _G)
+    correction = (1
+                  + (1 / 16)    * theta_rad**2
+                  + (11 / 3072) * theta_rad**4)
+    return float(T_small * correction)
+
+
+def make_lab4_data(n_samples: int = 2000, noise_level: float = 0.01):
+    """
+    Returns (X, Y) where X = (L, theta0_deg), Y = (T,)
+    """
+    rng    = np.random.default_rng(0)
+    L      = rng.uniform(0.5, 3.0, n_samples)
+    theta0 = rng.uniform(5, 80, n_samples)
+    T_true = np.array([calculate_pendulum_period(l, th)
+                       for l, th in zip(L, theta0)])
+    T_noisy = T_true * (1 + rng.normal(0, noise_level, n_samples))
+    return np.column_stack([L, theta0]), T_noisy.reshape(-1, 1)
+
+
+def build_lab4_model(layers: list, lr: float):
+    model = keras.Sequential()
+    model.add(keras.layers.Input(shape=(2,)))
+    for units in layers:
+        model.add(keras.layers.Dense(units, activation='relu'))
+        model.add(keras.layers.Dropout(0.1))
+    model.add(keras.layers.Dense(1, activation='linear'))
+    model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr), loss='mse')
+    return model
+
+
+class Lab4TrainingThread(TrainingThread):
+    def __init__(self, layers: list, epochs: int, lr: float, parent=None):
+        super().__init__(parent)
+        self.layers = layers
+        self.epochs = epochs
+        self.lr     = lr
+
+    def _run_training(self):
+        X, Y = make_lab4_data()
+        split = int(len(X) * 0.8)
+        X_tr, Y_tr = X[:split], Y[:split]
+        X_val, Y_val = X[split:], Y[split:]
+        self.model = build_lab4_model(self.layers, self.lr)
+        self.model.fit(
+            X_tr, Y_tr,
+            validation_data=(X_val, Y_val),
+            epochs=self.epochs,
+            batch_size=32,
+            verbose=0,
+            callbacks=[self._make_epoch_callback()],
+        )
+        self.train_done.emit(self.model)
+
+
+class Lab4Widget(QWidget):
+    """탭 3 — 진자 주기"""
+
+    def __init__(self, status_bar, parent=None):
+        super().__init__(parent)
+        self._status  = status_bar
+        self._thread  = None
+        self._history = {'loss': [], 'val_loss': []}
+        self._setup_ui()
+
+    def _setup_ui(self):
+        root = QHBoxLayout(self)
+
+        param_panel = QWidget()
+        param_panel.setFixedWidth(260)
+        pv = QVBoxLayout(param_panel)
+        pv.setAlignment(Qt.AlignTop)
+
+        pv.addWidget(QLabel("Hidden Layers"))
+        self._layer_edit = QLineEdit("[64, 32, 16]")
+        pv.addWidget(self._layer_edit)
+
+        pv.addWidget(QLabel("Epochs"))
+        self._epoch_slider = make_slider(100, 2000, 500, 100)
+        self._epoch_label  = QLabel("500")
+        self._epoch_slider.valueChanged.connect(
+            lambda v: self._epoch_label.setText(str(v)))
+        pv.addWidget(self._epoch_slider)
+        pv.addWidget(self._epoch_label)
+
+        pv.addWidget(QLabel("Learning Rate"))
+        self._lr_combo = QComboBox()
+        self._lr_combo.addItems(["0.01", "0.001", "0.0001"])
+        self._lr_combo.setCurrentIndex(1)
+        pv.addWidget(self._lr_combo)
+
+        pv.addWidget(QLabel("테스트 진자 길이 L"))
+        self._L_combo = QComboBox()
+        self._L_combo.addItems(["0.5m", "1.0m", "2.0m"])
+        self._L_combo.setCurrentIndex(1)
+        pv.addWidget(self._L_combo)
+
+        pv.addWidget(QLabel("각도 범위 최대 θ₀ (°)"))
+        self._angle_slider = make_slider(5, 80, 80)
+        self._angle_label  = QLabel("80")
+        self._angle_slider.valueChanged.connect(
+            lambda v: self._angle_label.setText(str(v)))
+        pv.addWidget(self._angle_slider)
+        pv.addWidget(self._angle_label)
+
+        self._run_btn = QPushButton("실행")
+        self._run_btn.clicked.connect(self._on_run_stop)
+        pv.addWidget(self._run_btn)
+
+        root.addWidget(param_panel)
+
+        chart_panel = QWidget()
+        cv = QVBoxLayout(chart_panel)
+        self._loss_canvas = make_canvas()
+        self._pred_canvas = make_canvas()
+        cv.addWidget(self._loss_canvas)
+        cv.addWidget(self._pred_canvas)
+        root.addWidget(chart_panel, stretch=1)
+
+    def _on_run_stop(self):
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._run_btn.setText("실행")
+            self._set_params_enabled(True)
+            return
+
+        try:
+            layers = parse_layer_string(self._layer_edit.text())
+        except ValueError as e:
+            self._layer_edit.setStyleSheet("border: 2px solid red;")
+            self._status.showMessage(f"레이어 입력 오류: {e}")
+            return
+        self._layer_edit.setStyleSheet("")
+
+        self._history = {'loss': [], 'val_loss': []}
+        for canvas in [self._loss_canvas, self._pred_canvas]:
+            canvas.figure.clear()
+            canvas.draw()
+
+        epochs = self._epoch_slider.value()
+        lr     = float(self._lr_combo.currentText())
+        self._test_L     = {'0.5m': 0.5, '1.0m': 1.0, '2.0m': 2.0}[self._L_combo.currentText()]
+        self._test_max_angle = self._angle_slider.value()
+
+        self._thread = Lab4TrainingThread(layers, epochs, lr)
+        self._thread.epoch_done.connect(self._on_epoch)
+        self._thread.train_done.connect(self._on_done)
+        self._thread.train_error.connect(
+            lambda msg: self._status.showMessage(f"오류: {msg}"))
+        self._thread.finished.connect(
+            lambda: (self._run_btn.setText("실행"),
+                     self._set_params_enabled(True)))
+        self._thread.start()
+
+        self._run_btn.setText("중지")
+        self._set_params_enabled(False)
+        self._status.showMessage("Lab4 학습 중…")
+
+    def _set_params_enabled(self, enabled: bool):
+        for w in [self._layer_edit, self._epoch_slider, self._lr_combo,
+                  self._L_combo, self._angle_slider]:
+            w.setEnabled(enabled)
+
+    def _on_epoch(self, epoch: int, logs: dict):
+        self._history['loss'].append(logs.get('loss', 0))
+        self._history['val_loss'].append(logs.get('val_loss', 0))
+        self._status.showMessage(
+            f"Lab4 | epoch {epoch+1} | loss={logs.get('loss', 0):.6f}")
+
+        fig = self._loss_canvas.figure
+        fig.clear()
+        ax = fig.add_subplot(111)
+        ax.plot(self._history['loss'],     label='Train Loss')
+        ax.plot(self._history['val_loss'], label='Val Loss', linestyle='--')
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel('MSE')
+        ax.set_title('Loss 곡선')
+        ax.legend(fontsize=8)
+        ax.set_yscale('log')
+        self._loss_canvas.draw()
+
+    def _on_done(self, model):
+        try:
+            L      = self._test_L
+            max_th = self._test_max_angle
+            angles = np.linspace(5, max_th, 50)
+
+            X_in   = np.column_stack([np.full(50, L), angles])
+            T_pred = model.predict(X_in, verbose=0).flatten()
+            T_true = np.array([calculate_pendulum_period(L, a) for a in angles])
+
+            fig = self._pred_canvas.figure
+            fig.clear()
+            ax = fig.add_subplot(111)
+            ax.plot(angles, T_true, color='blue',   label='이론값 (타원적분)')
+            ax.plot(angles, T_pred, color='orange', linestyle='--', label='예측값')
+            ax.set_xlabel('θ₀ (°)')
+            ax.set_ylabel('T (s)')
+            ax.set_title(f'주기 T vs 각도 (L={L} m)')
+            ax.legend(fontsize=8)
+            self._pred_canvas.draw()
+
+            self._status.showMessage("Lab4 학습 완료")
+        except Exception as e:
+            self._status.showMessage(f"결과 표시 오류: {e}")
+
+    def stop_training(self):
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._thread.wait()
             self._thread.wait()

@@ -86,3 +86,25 @@ def test_lab3_true_function():
     # y = sin(2x) + 0.5x
     expected = np.sin(2 * x) + 0.5 * x
     np.testing.assert_allclose(y, expected, atol=1e-10)
+
+def test_lab4_period_small_angle():
+    """작은 각도에서 T ≈ 2π√(L/g)"""
+    from week4_explorer import calculate_pendulum_period
+    g = 9.81
+    L = 1.0
+    T_approx = 2 * np.pi * np.sqrt(L / g)
+    T_calc   = calculate_pendulum_period(L, theta0_deg=5.0)
+    assert abs(T_calc - T_approx) / T_approx < 0.01  # 1% 이내
+
+def test_lab4_period_increases_with_angle():
+    """큰 각도일수록 주기가 길어짐"""
+    from week4_explorer import calculate_pendulum_period
+    T_small = calculate_pendulum_period(1.0, 10.0)
+    T_large = calculate_pendulum_period(1.0, 70.0)
+    assert T_large > T_small
+
+def test_lab4_data_shapes():
+    from week4_explorer import make_lab4_data
+    X_tr, Y_tr = make_lab4_data(n_samples=100)
+    assert X_tr.shape == (100, 2)   # (L, theta0)
+    assert Y_tr.shape == (100, 1)   # T
