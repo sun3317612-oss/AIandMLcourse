@@ -1100,7 +1100,6 @@ class Lab4Widget(QWidget):
         if self._thread and self._thread.isRunning():
             self._thread.stop()
             self._thread.wait()
-            self._thread.wait()
 
 
 # ─────────────────────────────────────────────
