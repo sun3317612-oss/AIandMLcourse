@@ -634,3 +634,240 @@ class Lab2Widget(QWidget):
         if self._thread and self._thread.isRunning():
             self._thread.stop()
             self._thread.wait()
+
+
+# ─────────────────────────────────────────────
+# Lab 3 — 과적합 데모
+# ─────────────────────────────────────────────
+
+def lab3_true_function(x: np.ndarray) -> np.ndarray:
+    return np.sin(2 * x) + 0.5 * x
+
+
+def make_lab3_data(noise_level: float = 0.3):
+    """
+    Returns (x_train, y_train, x_val, y_val, x_test, y_test)
+    """
+    rng = np.random.default_rng(42)
+    x_tr  = rng.uniform(-2, 2, 100).reshape(-1, 1)
+    y_tr  = lab3_true_function(x_tr) + rng.normal(0, noise_level, (100, 1))
+    x_val = rng.uniform(-2, 2, 50).reshape(-1, 1)
+    y_val = lab3_true_function(x_val) + rng.normal(0, noise_level, (50, 1))
+    x_te  = np.linspace(-2, 2, 200).reshape(-1, 1)
+    y_te  = lab3_true_function(x_te)
+    return x_tr, y_tr, x_val, y_val, x_te, y_te
+
+
+def _build_lab3_underfit():
+    model = keras.Sequential([
+        keras.layers.Input(shape=(1,)),
+        keras.layers.Dense(4, activation='relu'),
+        keras.layers.Dense(1, activation='linear'),
+    ])
+    model.compile(optimizer=keras.optimizers.Adam(0.001), loss='mse')
+    return model
+
+
+def _build_lab3_good():
+    model = keras.Sequential([
+        keras.layers.Input(shape=(1,)),
+        keras.layers.Dense(32, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(16, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(1, activation='linear'),
+    ])
+    model.compile(optimizer=keras.optimizers.Adam(0.001), loss='mse')
+    return model
+
+
+def _build_lab3_overfit():
+    model = keras.Sequential([
+        keras.layers.Input(shape=(1,)),
+        keras.layers.Dense(256, activation='relu'),
+        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(64,  activation='relu'),
+        keras.layers.Dense(32,  activation='relu'),
+        keras.layers.Dense(1,   activation='linear'),
+    ])
+    model.compile(optimizer=keras.optimizers.Adam(0.001), loss='mse')
+    return model
+
+
+_LAB3_MODEL_BUILDERS = [
+    ('Underfit', _build_lab3_underfit),
+    ('Good Fit', _build_lab3_good),
+    ('Overfit',  _build_lab3_overfit),
+]
+
+
+class Lab3TrainingThread(TrainingThread):
+    """
+    Underfit → Good Fit → Overfit 순서로 3개 모델 순차 학습.
+    model_start(name): 각 모델 학습 시작 시 상태 표시용 시그널.
+    """
+    model_start = Signal(str)   # 학습 시작할 모델명
+
+    def __init__(self, epochs: int, noise_level: float, parent=None):
+        super().__init__(parent)
+        self.epochs      = epochs
+        self.noise_level = noise_level
+        self.results     = {}   # name → (model, x_test, y_test)
+
+    def _run_training(self):
+        x_tr, y_tr, x_val, y_val, x_te, y_te = make_lab3_data(self.noise_level)
+        for name, builder in _LAB3_MODEL_BUILDERS:
+            if self._stop:
+                break
+            self.model_start.emit(name)
+            self.model = builder()
+            self.model.fit(
+                x_tr, y_tr,
+                validation_data=(x_val, y_val),
+                epochs=self.epochs,
+                batch_size=16,
+                verbose=0,
+                callbacks=[self._make_epoch_callback()],
+            )
+            self.results[name] = (self.model, x_te, y_te)
+        self.train_done.emit(self.results)
+
+
+class Lab3Widget(QWidget):
+    """탭 2 — 과적합 데모"""
+
+    def __init__(self, status_bar, parent=None):
+        super().__init__(parent)
+        self._status  = status_bar
+        self._thread  = None
+        self._history = {'loss': [], 'val_loss': []}
+        self._setup_ui()
+
+    def _setup_ui(self):
+        root = QHBoxLayout(self)
+
+        param_panel = QWidget()
+        param_panel.setFixedWidth(260)
+        pv = QVBoxLayout(param_panel)
+        pv.setAlignment(Qt.AlignTop)
+
+        pv.addWidget(QLabel("Epochs"))
+        self._epoch_slider = make_slider(50, 500, 200, 50)
+        self._epoch_label  = QLabel("200")
+        self._epoch_slider.valueChanged.connect(
+            lambda v: self._epoch_label.setText(str(v)))
+        pv.addWidget(self._epoch_slider)
+        pv.addWidget(self._epoch_label)
+
+        pv.addWidget(QLabel("노이즈 수준"))
+        self._noise_slider = make_slider(1, 10, 3)
+        self._noise_label  = QLabel("0.3")
+        self._noise_slider.valueChanged.connect(
+            lambda v: self._noise_label.setText(f"{v/10:.1f}"))
+        pv.addWidget(self._noise_slider)
+        pv.addWidget(self._noise_label)
+
+        self._run_btn = QPushButton("모두 실행")
+        self._run_btn.clicked.connect(self._on_run_stop)
+        pv.addWidget(self._run_btn)
+
+        root.addWidget(param_panel)
+
+        chart_panel = QWidget()
+        cv = QVBoxLayout(chart_panel)
+        self._loss_canvas = make_canvas()
+        self._pred_canvas = make_canvas()
+        cv.addWidget(self._loss_canvas)
+        cv.addWidget(self._pred_canvas)
+        root.addWidget(chart_panel, stretch=1)
+
+    def _on_run_stop(self):
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._run_btn.setText("모두 실행")
+            self._set_params_enabled(True)
+            return
+
+        self._history = {'loss': [], 'val_loss': []}
+        for canvas in [self._loss_canvas, self._pred_canvas]:
+            canvas.figure.clear()
+            canvas.draw()
+
+        epochs      = self._epoch_slider.value()
+        noise_level = self._noise_slider.value() / 10.0
+
+        self._thread = Lab3TrainingThread(epochs, noise_level)
+        self._thread.model_start.connect(
+            lambda name: (
+                self._status.showMessage(f"Lab3 | {name} 학습 중…"),
+                self._reset_loss_chart()
+            ))
+        self._thread.epoch_done.connect(self._on_epoch)
+        self._thread.train_done.connect(self._on_done)
+        self._thread.train_error.connect(
+            lambda msg: self._status.showMessage(f"오류: {msg}"))
+        self._thread.finished.connect(
+            lambda: (self._run_btn.setText("모두 실행"),
+                     self._set_params_enabled(True)))
+        self._thread.start()
+
+        self._run_btn.setText("중지")
+        self._set_params_enabled(False)
+
+    def _set_params_enabled(self, enabled: bool):
+        for w in [self._epoch_slider, self._noise_slider]:
+            w.setEnabled(enabled)
+
+    def _reset_loss_chart(self):
+        self._history = {'loss': [], 'val_loss': []}
+        self._loss_canvas.figure.clear()
+        self._loss_canvas.draw()
+
+    def _on_epoch(self, epoch: int, logs: dict):
+        self._history['loss'].append(logs.get('loss', 0))
+        self._history['val_loss'].append(logs.get('val_loss', 0))
+
+        fig = self._loss_canvas.figure
+        fig.clear()
+        ax = fig.add_subplot(111)
+        ax.plot(self._history['loss'],     label='Train Loss')
+        ax.plot(self._history['val_loss'], label='Val Loss', linestyle='--')
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel('MSE')
+        ax.set_title('현재 모델 Loss 곡선')
+        ax.legend(fontsize=8)
+        ax.set_yscale('log')
+        self._loss_canvas.draw()
+
+    def _on_done(self, results: dict):
+        try:
+            colors = {'Underfit': 'red', 'Good Fit': 'green', 'Overfit': 'blue'}
+
+            fig = self._pred_canvas.figure
+            fig.clear()
+            ax = fig.add_subplot(111)
+
+            for name, (model, x_te, y_te) in results.items():
+                y_pred = model.predict(x_te, verbose=0)
+                ax.plot(x_te, y_pred, color=colors[name],
+                        linestyle='--', label=name)
+
+            if results:
+                first_name = next(iter(results))
+                _, x_te, y_te = results[first_name]
+                ax.plot(x_te, y_te, 'k-', linewidth=2, label='실제값', alpha=0.6)
+
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_title('3개 모델 예측 비교')
+            ax.legend(fontsize=8)
+            self._pred_canvas.draw()
+
+            self._status.showMessage("Lab3 학습 완료")
+        except Exception as e:
+            self._status.showMessage(f"결과 표시 오류: {e}")
+
+    def stop_training(self):
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._thread.wait()

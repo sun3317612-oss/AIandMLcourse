@@ -70,3 +70,19 @@ def test_lab2_trajectory_shape():
     assert len(y) == 50
     assert y[0] >= 0
     assert x[0] >= 0
+
+def test_lab3_data_shapes():
+    from week4_explorer import make_lab3_data
+    x_tr, y_tr, x_val, y_val, x_te, y_te = make_lab3_data(noise_level=0.3)
+    assert x_tr.shape == (100, 1)
+    assert y_tr.shape == (100, 1)
+    assert x_val.shape == (50, 1)
+    assert x_te.shape == (200, 1)
+
+def test_lab3_true_function():
+    from week4_explorer import lab3_true_function
+    x = np.array([[0.0], [1.0]])
+    y = lab3_true_function(x)
+    # y = sin(2x) + 0.5x
+    expected = np.sin(2 * x) + 0.5 * x
+    np.testing.assert_allclose(y, expected, atol=1e-10)
