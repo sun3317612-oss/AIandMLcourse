@@ -23,6 +23,10 @@ except ImportError:
     # 테스트 환경 등 GUI/TF가 없는 경우: 더미 베이스 클래스로 대체
     class QThread:  # type: ignore
         pass
+    class QWidget:  # type: ignore
+        pass
+    class QStatusBar:  # type: ignore
+        pass
     def Signal(*args):  # type: ignore
         return None
     keras = None  # type: ignore
@@ -222,3 +226,169 @@ class Lab1TrainingThread(TrainingThread):
             callbacks=[self._make_epoch_callback()],
         )
         self.train_done.emit(self.model)
+
+
+class Lab1Widget(QWidget):
+    """탭 0 — 1D 함수 근사"""
+
+    def __init__(self, status_bar: QStatusBar, parent=None):
+        super().__init__(parent)
+        self._status  = status_bar
+        self._thread  = None
+        self._history = {'loss': [], 'val_loss': []}
+        self._setup_ui()
+
+    # ── UI 구성 ──────────────────────────────
+
+    def _setup_ui(self):
+        root = QHBoxLayout(self)
+
+        # 왼쪽 파라미터 패널 (고정 너비 260px)
+        param_panel = QWidget()
+        param_panel.setFixedWidth(260)
+        pv = QVBoxLayout(param_panel)
+        pv.setAlignment(Qt.AlignTop)
+
+        # 함수 선택
+        pv.addWidget(QLabel("함수 선택"))
+        self._func_combo = QComboBox()
+        self._func_combo.addItems(list(_LAB1_FUNCTIONS.keys()))
+        pv.addWidget(self._func_combo)
+
+        # 히든 레이어
+        pv.addWidget(QLabel("Hidden Layers"))
+        self._layer_edit = QLineEdit("[128, 128, 64]")
+        pv.addWidget(self._layer_edit)
+
+        # Epochs 슬라이더
+        pv.addWidget(QLabel("Epochs: 3000"))
+        self._epoch_slider = make_slider(100, 5000, 3000, 100)
+        self._epoch_label  = QLabel("3000")
+        self._epoch_slider.valueChanged.connect(
+            lambda v: self._epoch_label.setText(str(v)))
+        pv.addWidget(self._epoch_slider)
+        pv.addWidget(self._epoch_label)
+
+        # Learning Rate
+        pv.addWidget(QLabel("Learning Rate"))
+        self._lr_combo = QComboBox()
+        self._lr_combo.addItems(["0.01", "0.001", "0.0001"])
+        self._lr_combo.setCurrentIndex(0)
+        pv.addWidget(self._lr_combo)
+
+        # Activation
+        pv.addWidget(QLabel("Activation"))
+        self._act_combo = QComboBox()
+        self._act_combo.addItems(["tanh", "relu"])
+        pv.addWidget(self._act_combo)
+
+        # 실행/중지 버튼
+        self._run_btn = QPushButton("실행")
+        self._run_btn.clicked.connect(self._on_run_stop)
+        pv.addWidget(self._run_btn)
+
+        root.addWidget(param_panel)
+
+        # 오른쪽 차트 패널
+        chart_panel = QWidget()
+        cv = QVBoxLayout(chart_panel)
+
+        self._loss_canvas = make_canvas()
+        self._pred_canvas = make_canvas()
+        cv.addWidget(self._loss_canvas)
+        cv.addWidget(self._pred_canvas)
+
+        root.addWidget(chart_panel, stretch=1)
+
+    # ── 슬롯 ────────────────────────────────
+
+    def _on_run_stop(self):
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._run_btn.setText("실행")
+            self._set_params_enabled(True)
+            return
+
+        # 입력 검증
+        try:
+            layers = parse_layer_string(self._layer_edit.text())
+        except ValueError as e:
+            self._layer_edit.setStyleSheet("border: 2px solid red;")
+            self._status.showMessage(f"레이어 입력 오류: {e}")
+            return
+        self._layer_edit.setStyleSheet("")
+
+        # 학습 시작
+        self._history = {'loss': [], 'val_loss': []}
+        self._clear_charts()
+
+        func_name  = self._func_combo.currentText()
+        epochs     = self._epoch_slider.value()
+        lr         = float(self._lr_combo.currentText())
+        activation = self._act_combo.currentText()
+
+        self._thread = Lab1TrainingThread(func_name, layers, epochs, lr, activation)
+        self._thread.epoch_done.connect(self._on_epoch)
+        self._thread.train_done.connect(self._on_done)
+        self._thread.train_error.connect(
+            lambda msg: self._status.showMessage(f"오류: {msg}"))
+        self._thread.finished.connect(
+            lambda: (self._run_btn.setText("실행"),
+                     self._set_params_enabled(True)))
+        self._thread.start()
+
+        self._run_btn.setText("중지")
+        self._set_params_enabled(False)
+        self._status.showMessage("Lab1 학습 중…")
+
+    def _set_params_enabled(self, enabled: bool):
+        for w in [self._func_combo, self._layer_edit, self._epoch_slider,
+                  self._lr_combo, self._act_combo]:
+            w.setEnabled(enabled)
+
+    def _clear_charts(self):
+        for canvas in [self._loss_canvas, self._pred_canvas]:
+            canvas.figure.clear()
+            canvas.draw()
+
+    def _on_epoch(self, epoch: int, logs: dict):
+        self._history['loss'].append(logs.get('loss', 0))
+        self._history['val_loss'].append(logs.get('val_loss', 0))
+        self._status.showMessage(
+            f"Lab1 | epoch {epoch+1} | loss={logs.get('loss', 0):.5f}")
+
+        fig = self._loss_canvas.figure
+        fig.clear()
+        ax = fig.add_subplot(111)
+        ax.plot(self._history['loss'],     label='Train Loss')
+        ax.plot(self._history['val_loss'], label='Val Loss', linestyle='--')
+        ax.set_xlabel('Epoch')
+        ax.set_ylabel('MSE')
+        ax.set_title('Loss 곡선')
+        ax.legend(fontsize=8)
+        ax.set_yscale('log')
+        self._loss_canvas.draw()
+
+    def _on_done(self, model):
+        func_name = self._func_combo.currentText()
+        _, _, x_te, y_te = make_lab1_data(func_name)
+        y_pred = model.predict(x_te, verbose=0)
+
+        fig = self._pred_canvas.figure
+        fig.clear()
+        ax = fig.add_subplot(111)
+        ax.plot(x_te, y_te,   color='green',  label='실제값')
+        ax.plot(x_te, y_pred, color='orange', linestyle='--', label='예측값')
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_title(f'{func_name} 근사 결과')
+        ax.legend(fontsize=8)
+        self._pred_canvas.draw()
+
+        self._status.showMessage("Lab1 학습 완료")
+
+    def stop_training(self):
+        """MainWindow closeEvent에서 호출"""
+        if self._thread and self._thread.isRunning():
+            self._thread.stop()
+            self._thread.wait()
