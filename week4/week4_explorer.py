@@ -146,3 +146,79 @@ class TrainingThread(QThread):
 
     def _run_training(self):
         raise NotImplementedError
+
+
+# ─────────────────────────────────────────────
+# 공통 UI 헬퍼
+# ─────────────────────────────────────────────
+
+def make_canvas(width_inch=5, height_inch=3.5):
+    fig = Figure(figsize=(width_inch, height_inch), tight_layout=True)
+    canvas = FigureCanvas(fig)
+    canvas.setMinimumHeight(200)
+    return canvas
+
+
+def make_slider(min_val, max_val, default, step=1):
+    sl = QSlider(Qt.Horizontal)
+    sl.setRange(min_val, max_val)
+    sl.setSingleStep(step)
+    sl.setValue(default)
+    return sl
+
+
+# ─────────────────────────────────────────────
+# Lab 1 — 1D 함수 근사
+# ─────────────────────────────────────────────
+
+_LAB1_FUNCTIONS = {
+    'sin(x)': lambda x: np.sin(x),
+    'cos(x)+0.5sin(2x)': lambda x: np.cos(x) + 0.5 * np.sin(2 * x),
+    'x·sin(x)': lambda x: x * np.sin(x),
+}
+
+
+def make_lab1_data(func_name):
+    """
+    Returns (x_train, y_train, x_test, y_test) for Lab1.
+    x range: [-2π, 2π]
+    """
+    if func_name not in _LAB1_FUNCTIONS:
+        raise ValueError(f"알 수 없는 함수: {func_name}")
+    fn = _LAB1_FUNCTIONS[func_name]
+    x_train = np.linspace(-2 * np.pi, 2 * np.pi, 200).reshape(-1, 1)
+    x_test  = np.linspace(-2 * np.pi, 2 * np.pi, 400).reshape(-1, 1)
+    return x_train, fn(x_train).reshape(-1, 1), x_test, fn(x_test).reshape(-1, 1)
+
+
+def build_lab1_model(layers, activation, lr):
+    model = keras.Sequential()
+    model.add(keras.layers.Input(shape=(1,)))
+    for units in layers:
+        model.add(keras.layers.Dense(units, activation=activation))
+    model.add(keras.layers.Dense(1, activation='linear'))
+    model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr), loss='mse')
+    return model
+
+
+class Lab1TrainingThread(TrainingThread):
+    def __init__(self, func_name, layers, epochs, lr, activation, parent=None):
+        super().__init__(parent)
+        self.func_name  = func_name
+        self.layers     = layers
+        self.epochs     = epochs
+        self.lr         = lr
+        self.activation = activation
+
+    def _run_training(self):
+        x_tr, y_tr, x_te, y_te = make_lab1_data(self.func_name)
+        self.model = build_lab1_model(self.layers, self.activation, self.lr)
+        self.model.fit(
+            x_tr, y_tr,
+            validation_data=(x_te, y_te),
+            epochs=self.epochs,
+            batch_size=32,
+            verbose=0,
+            callbacks=[self._make_epoch_callback()],
+        )
+        self.train_done.emit(self.model)
