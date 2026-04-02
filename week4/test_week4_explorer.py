@@ -53,3 +53,20 @@ def test_lab1_data_unknown_function():
     from week4_explorer import make_lab1_data
     with pytest.raises(ValueError):
         make_lab1_data('unknown_func')
+
+def test_lab2_data_shapes():
+    from week4_explorer import make_lab2_data
+    X_tr, Y_tr, X_te, Y_te = make_lab2_data(n_train=200, n_test=50)
+    assert X_tr.shape[1] == 3   # (v0, theta, t)
+    assert Y_tr.shape[1] == 2   # (x, y)
+    assert X_te.shape[1] == 3
+    # y >= 0 보장 검증
+    assert (Y_tr[:, 1] >= 0).all()
+
+def test_lab2_trajectory_shape():
+    from week4_explorer import make_lab2_trajectory_physics
+    x, y = make_lab2_trajectory_physics(v0=30, theta_deg=45, n_points=50)
+    assert len(x) == 50
+    assert len(y) == 50
+    assert y[0] >= 0
+    assert x[0] >= 0
