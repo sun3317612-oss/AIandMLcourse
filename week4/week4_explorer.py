@@ -27,6 +27,14 @@ except ImportError:
         pass
     class QStatusBar:  # type: ignore
         pass
+    class QMainWindow:  # type: ignore
+        pass
+    class QTabWidget:  # type: ignore
+        pass
+    class QApplication:  # type: ignore
+        pass
+    class QFont:  # type: ignore
+        pass
     def Signal(*args):  # type: ignore
         return None
     keras = None  # type: ignore
@@ -1093,3 +1101,60 @@ class Lab4Widget(QWidget):
             self._thread.stop()
             self._thread.wait()
             self._thread.wait()
+
+
+# ─────────────────────────────────────────────
+# MainWindow
+# ─────────────────────────────────────────────
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Week4 Neural Explorer")
+        self.resize(1100, 700)
+
+        status = QStatusBar()
+        self.setStatusBar(status)
+        status.showMessage("준비")
+
+        tabs = QTabWidget()
+        self._labs = [
+            Lab1Widget(status),
+            Lab2Widget(status),
+            Lab3Widget(status),
+            Lab4Widget(status),
+        ]
+        tab_names = [
+            "1D 함수 근사",
+            "포물선 운동",
+            "과적합 데모",
+            "진자 주기",
+        ]
+        for widget, name in zip(self._labs, tab_names):
+            tabs.addTab(widget, name)
+
+        self.setCentralWidget(tabs)
+
+    def closeEvent(self, event):
+        """앱 종료 시 실행 중인 모든 학습 스레드를 정지."""
+        for lab in self._labs:
+            lab.stop_training()
+        event.accept()
+
+
+# ─────────────────────────────────────────────
+# 진입점
+# ─────────────────────────────────────────────
+
+def main():
+    _setup_gui_imports()
+    _setup_korean_font()
+    app = QApplication.instance() or QApplication(sys.argv)
+    app.setFont(QFont("Malgun Gothic", 9))
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
+if __name__ == '__main__':
+    main()
