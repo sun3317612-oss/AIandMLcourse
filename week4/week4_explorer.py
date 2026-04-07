@@ -15,7 +15,13 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # (TrainingThread 클래스 정의에 필요; GUI 없는 환경에서도 가져올 수 있도록 시도)
 # ─────────────────────────────────────────────
 try:
-    from PySide6.QtCore import QThread, Signal
+    from PySide6.QtCore import QThread, Signal, Qt
+    from PySide6.QtWidgets import (
+        QApplication, QMainWindow, QTabWidget, QWidget,
+        QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+        QComboBox, QSlider, QLineEdit, QStatusBar,
+    )
+    from PySide6.QtGui import QFont
     import tensorflow as tf
     from tensorflow import keras
     _GUI_IMPORTS_OK = True
