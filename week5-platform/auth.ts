@@ -44,11 +44,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
     async session({ session, token }) {
-      const dbUser = await getUser(token.id as string)
-      const isPaid = dbUser
-        ? Boolean(dbUser.is_demo) ||
-          (await hasActiveSubscription(token.id as string))
-        : false
+      let isPaid = false
+      try {
+        const dbUser = await getUser(token.id as string)
+        isPaid = dbUser
+          ? Boolean(dbUser.is_demo) ||
+            (await hasActiveSubscription(token.id as string))
+          : false
+      } catch {
+        // DB unreachable — degrade gracefully, user gets isPaid = false
+      }
 
       session.user.id = token.id as string
       session.user.isDemo = Boolean(token.isDemo)
