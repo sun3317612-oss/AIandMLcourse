@@ -21,7 +21,7 @@ export default async function ChaptersPage({
   // 결제 성공 후 Polar API로 직접 확인해서 DB 업데이트
   if (params.success && params.checkout_id && session?.user?.id) {
     try {
-      const checkout = await polar.checkouts.get(params.checkout_id)
+      const checkout = await polar.checkouts.get({ id: params.checkout_id })
       if (checkout.status === "succeeded") {
         await upsertSubscription({
           id: checkout.id,
