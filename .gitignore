@@ -12,6 +12,12 @@ wheels/
 # Claude Code local config
 .claude/
 
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env*.local
+*.env
+
 # Weeks not yet published
 week9/
 week10/
