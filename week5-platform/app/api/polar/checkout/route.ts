@@ -18,6 +18,9 @@ export async function POST() {
       products: [process.env.POLAR_PRODUCT_ID!],
       successUrl: `${process.env.NEXTAUTH_URL}/chapters?success=true`,
       customerEmail: session.user?.email ?? undefined,
+      metadata: {
+        user_id: session.user.id,
+      },
     })
     return NextResponse.json({ url: checkout.url })
   } catch (error) {
