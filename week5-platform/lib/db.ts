@@ -36,7 +36,7 @@ export async function upsertUser(user: {
   await db.execute({
     sql: `INSERT INTO users (id, email, name, image, is_demo)
           VALUES (:id, :email, :name, :image, :is_demo)
-          ON CONFLICT(id) DO UPDATE SET name = :name, image = :image, is_demo = :is_demo`,
+          ON CONFLICT(email) DO UPDATE SET id = :id, name = :name, image = :image, is_demo = :is_demo`,
     args: {
       id: user.id,
       email: user.email,
