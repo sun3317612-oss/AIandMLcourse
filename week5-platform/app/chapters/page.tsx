@@ -1,16 +1,53 @@
 import { auth } from "@/auth"
 import { chapters } from "@/lib/chapters"
+import { upsertSubscription } from "@/lib/db"
 import ChapterCard from "@/components/ChapterCard"
 import PaymentButton from "@/components/PaymentButton"
+import { Polar } from "@polar-sh/sdk"
+
+const polar = new Polar({
+  accessToken: process.env.POLAR_ACCESS_TOKEN!,
+  server: "sandbox",
+})
 
 export default async function ChaptersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>
+  searchParams: Promise<{ success?: string; checkout_id?: string }>
 }) {
   const session = await auth()
-  const isPaid = session?.user?.isPaid ?? false
   const params = await searchParams
+
+  // 결제 성공 후 Polar API로 직접 확인해서 DB 업데이트
+  if (params.success && params.checkout_id && session?.user?.id) {
+    try {
+      const checkout = await polar.checkouts.get(params.checkout_id)
+      if (checkout.status === "succeeded") {
+        await upsertSubscription({
+          id: checkout.id,
+          userId: session.user.id,
+          polarSubscriptionId: checkout.id,
+          status: "active",
+        })
+      }
+    } catch {
+      // 확인 실패 시 무시 (웹훅이 처리했을 수도 있음)
+    }
+  }
+
+  // DB에서 최신 상태 다시 확인
+  const { hasActiveSubscription, getUser } = await import("@/lib/db")
+  let isPaid = false
+  if (session?.user?.id) {
+    try {
+      const dbUser = await getUser(session.user.id)
+      isPaid = dbUser
+        ? Boolean(dbUser.is_demo) || (await hasActiveSubscription(session.user.id))
+        : false
+    } catch {
+      isPaid = session?.user?.isPaid ?? false
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
