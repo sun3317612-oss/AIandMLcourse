@@ -1,0 +1,51 @@
+================================================================================
+Hamiltonian Matrix Structure Analysis
+================================================================================
+
+Grid Configuration:
+  Spatial range: [-5.00, 5.00]
+  Grid spacing (dx): 0.1000
+  Number of points (N): 101
+  Matrix size: 101 ¡¿ 101
+  Total elements: 10,201
+  Memory: 79.70 KB
+
+Matrix Structure:
+  Type: Tridiagonal (kinetic) + Diagonal (potential)
+  Non-zero elements per row: 3 (off-diagonal) + 1 (potential)
+  Sparsity: ~97.0%
+
+Typical Matrix Elements:
+  Kinetic energy (diagonal): 100.0000
+  Kinetic energy (off-diagonal): -50.0000
+  Potential (in well): -10.0000
+  Potential (outside): 0.0000
+
+Energy Eigenvalues (first 10):
+  n=0: E =  -9.188154
+  n=1: E =  -6.815575
+  n=2: E =  -3.142121
+  n=3: E =   0.180747
+  n=4: E =   0.297832
+  n=5: E =   0.707441
+  n=6: E =   1.164788
+  n=7: E =   1.641677
+  n=8: E =   2.539089
+  n=9: E =   3.077211
+
+================================================================================
+Matrix Expression:
+================================================================================
+H = T + V
+
+where:
+  T[i,i]   = 2 x hbar^2/(2m x dx^2) = 100.0000
+  T[i,i¡¾1] = -1 x hbar^2/(2m x dx^2) = -50.0000
+  V[i,i]   = V(x_i)
+
+Example (5¡¿5 submatrix at center):
+  [   90.00  -50.00    0.00    0.00    0.00 ]
+  [  -50.00   90.00  -50.00    0.00    0.00 ]
+  [    0.00  -50.00   90.00  -50.00    0.00 ]
+  [    0.00    0.00  -50.00   90.00  -50.00 ]
+  [    0.00    0.00    0.00  -50.00   90.00 ]
