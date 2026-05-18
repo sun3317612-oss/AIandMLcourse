@@ -1,0 +1,554 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages for XeLaTeX (Windows 기본 폰트 사용)
+\usepackage{fontspec}
+\setmainfont{Batang}        % 바탕체 (명조체)
+%\setsansfont{Malgun Gothic} % 맑은 고딕
+\setmonofont{Consolas}      % 코드용 폰트
+
+% Mathematical packages
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+% Graphics and colors
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+
+% Layout
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Color definitions
+\definecolor{titleblue}{RGB}{37,99,235}
+\definecolor{sectiongray}{RGB}{75,85,99}
+
+% Hyperref settings
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={AI와 머신러닝 강의계획서},
+    pdfauthor={부산대학교 물리학과},
+}
+
+% Title formatting
+\titleformat{\section}
+  {\Large\bfseries\color{titleblue}}
+  {\thesection}{1em}{}[\titlerule]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{sectiongray}}
+  {\thesubsection}{1em}{}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small AI와 머신러닝: AI와 물리학의 만남}
+\fancyhead[R]{\small 2026년 1학기}
+\fancyfoot[C]{\thepage\ / \pageref{LastPage}}
+
+% Document starts
+\begin{document}
+
+% Title page
+\begin{center}
+    {\Huge\bfseries\color{titleblue} AI와 머신러닝: AI와 물리학의 만남}\\[0.3cm]
+    {\Large\textbf{AI and Machine Learning: From Neural Networks to}}\\
+    {\Large\textbf{Physics-Informed AI}}\\[1cm]
+    
+    {\large 부산대학교 물리학과}\\[0.5cm]
+    {\large 2026년 1학기}\\[0.3cm]
+    {\large 학년: 2학년 1학기}\\[0.3cm]
+    {\large 강의시간: 주 3시간 (강의 2시간 + 실습 1시간)}\\[0.3cm]
+    {\large 사용 도구: Python, Claude AI, VS Code}\\[1cm]
+\end{center}
+
+% Team project info box
+\noindent\fbox{\parbox{\textwidth}{
+\textbf{팀 프로젝트 정보}\\[0.2cm]
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item \textbf{팀 구성}: 4명 1팀
+    \item \textbf{프로젝트 형태}: 팀별 협업 프로젝트
+    \item \textbf{발표}: 학기말 팀별 프로젝트 발표 예정
+    \item \textbf{협업 도구}: GitHub를 통한 코드 공유 및 버전 관리
+\end{itemize}
+}}
+
+\vspace{0.5cm}
+
+\section{강의 개요}
+
+본 강의는 현대 물리학 연구에서 필수적인 인공지능 기술을 학습하고, 이를 실제 물리 문제 해결에 적용하는 능력을 배양합니다. Neural Network의 기초부터 최신 Large Language Model(LLM), 그리고 물리학 특화 AI인 Physics-Informed Neural Networks(PINN)까지 다룹니다.
+
+\subsection*{핵심 특징}
+\begin{itemize}[noitemsep]
+    \item MIT 강의 자료 기반의 체계적인 이론 학습
+    \item Claude AI를 활용한 "vibe coding" 실습
+    \item 역학, 전자기, 양자역학, 통계물리 문제의 AI 기반 수치 해법
+    \item 물리 법칙을 학습에 직접 포함하는 PINN 기법
+\end{itemize}
+
+\section{학습 목표}
+
+\begin{enumerate}[noitemsep]
+    \item Neural Network의 기본 원리와 작동 방식 이해
+    \item Deep Learning과 Transformer 아키텍처 학습
+    \item LLM을 활용한 효율적인 코딩 능력 배양
+    \item 물리 문제를 AI로 해결하는 실전 경험
+    \item PINN을 이용한 미분방정식 해법 습득
+\end{enumerate}
+
+\section{교재 및 참고자료}
+
+\subsection{주교재}
+\begin{itemize}[noitemsep]
+    \item \textbf{MIT 6.S191}: Introduction to Deep Learning (강의 노트 및 영상)
+    \item 강의자 제공 자료: Jupyter Notebooks, Python 코드 예제
+\end{itemize}
+
+\subsection{참고서적}
+\begin{itemize}[noitemsep]
+    \item \textit{Deep Learning} by Goodfellow, Bengio, and Courville
+    \item \textit{Physics-Informed Neural Networks} (관련 논문 모음)
+    \item \textit{Computational Physics} by Mark Newman
+\end{itemize}
+
+\subsection{온라인 자료}
+\begin{itemize}[noitemsep]
+    \item Claude AI Documentation
+    \item PyTorch/TensorFlow Tutorials
+    \item ArXiv papers on PINN applications
+\end{itemize}
+
+\newpage
+
+\section{강의 일정 (16주)}
+
+\subsection{Part I: Neural Networks \& Deep Learning (Weeks 1-7)}
+
+\subsubsection*{Week 1: 강의 소개 및 환경 설정}
+\begin{itemize}[noitemsep]
+    \item 강의 목표 및 평가 방식 소개
+    \item Python 환경 설정: uv, Git, VS Code/Cursor
+    \item Claude AI 계정 생성 및 기본 사용법
+    \item \textbf{실습}: "Hello, Neural Network!" - 첫 번째 신경망 구현, 다항식 피팅을 통한 ML 기초
+    \item \textbf{주요 개념}: Development Environment, AI in Physics
+\end{itemize}
+
+\subsubsection*{Week 2: 머신러닝 기초}
+\begin{itemize}[noitemsep]
+    \item 머신러닝의 세 가지 유형: 지도/비지도/강화 학습
+    \item 데이터 전처리와 특징 추출
+    \item 손실 함수(Loss Function)와 최적화
+    \item \textbf{실습}: Linear Regression, 클러스터링, Gradient Descent 시각화
+    \item \textbf{주요 개념}: Supervised Learning, Loss Functions, Gradient Descent
+    \item \textbf{과제 1}: 실험 데이터를 이용한 선형/비선형 회귀 분석
+\end{itemize}
+
+\subsubsection*{Week 3: Neural Network 기초 이론}
+\begin{itemize}[noitemsep]
+    \item Perceptron과 Multi-Layer Perceptron
+    \item Activation Functions: ReLU, Sigmoid, Tanh
+    \item Forward Propagation의 수학적 구조
+    \item Universal Approximation Theorem
+    \item \textbf{실습}: Numpy로 구현하는 순수 Neural Network
+    \item \textbf{주요 개념}: Neurons, Activation, Forward Pass
+    \item \textbf{참고}: MIT 6.S191 Lecture 1
+\end{itemize}
+
+\subsubsection*{Week 4: 물리 데이터로 학습하기}
+\begin{itemize}[noitemsep]
+    \item TensorFlow/Keras를 이용한 회귀 모델
+    \item 과적합(Overfitting)과 과소적합(Underfitting)
+    \item 모델 복잡도와 성능의 관계
+    \item \textbf{실습}: 1D 함수 근사, 포물선 운동 예측, 진자 주기 학습
+    \item \textbf{주요 개념}: Regression with Neural Networks, Model Complexity
+    \item \textbf{과제 2}: 다양한 물리 문제에 NN 적용
+\end{itemize}
+
+\subsubsection*{Week 5: Deep Learning의 핵심 기법}
+\begin{itemize}[noitemsep]
+    \item Regularization: L1/L2, Dropout, Batch Normalization
+    \item Overfitting vs. Underfitting
+    \item Data Augmentation, Transfer Learning의 개념
+    \item \textbf{실습}: MNIST 손글씨 인식 (CNN 도입)
+    \item \textbf{주요 개념}: Regularization, Generalization, CNN Basics
+    \item \textbf{참고}: MIT 6.S191 Lecture 2
+\end{itemize}
+
+\subsubsection*{Week 6: Transformer와 Attention Mechanism}
+\begin{itemize}[noitemsep]
+    \item RNN의 한계와 Attention의 등장
+    \item Self-Attention의 원리, Transformer 아키텍처 분석
+    \item Positional Encoding
+    \item \textbf{실습}: Attention 메커니즘, Multi-Head Attention, Transformer Block 구현
+    \item \textbf{주요 개념}: Attention, Self-Attention, Transformers, Sequence Modeling
+    \item \textbf{참고}: "Attention Is All You Need" (Vaswani et al., 2017)
+\end{itemize}
+
+\subsubsection*{Week 7: Large Language Models (LLM) 개론}
+\begin{itemize}[noitemsep]
+    \item GPT, BERT, Claude 아키텍처 비교
+    \item Pre-training과 Fine-tuning
+    \item Token, Embedding, Context Window
+    \item RLHF (Reinforcement Learning from Human Feedback)
+    \item \textbf{실습}: Tokenization 방법, GPT vs BERT 비교, Claude API 학습
+    \item \textbf{주요 개념}: LLM Architecture, Tokenization, Prompting, RLHF
+    \item \textbf{프로젝트 중간 발표}: Part I 학습 내용 요약 및 미니 프로젝트
+\end{itemize}
+
+\subsection{Part II: LLM Vibe Coding for Physics (Weeks 8-12)}
+
+\subsubsection*{Week 8: 중간고사 / LLM 기반 코딩 입문}
+\begin{itemize}[noitemsep]
+    \item "Vibe Coding"이란? - 자연어로 코드 생성
+    \item Prompt Engineering 기법
+    \item Claude를 이용한 효율적인 디버깅
+    \item \textbf{실습}: 자연어로 물리 시뮬레이션 코드 생성
+    \item \textbf{주요 개념}: Prompt Engineering, AI-Assisted Programming
+\end{itemize}
+
+\subsubsection*{Week 9: 고전 역학 문제 해결}
+\begin{itemize}[noitemsep]
+    \item 뉴턴 방정식의 수치 해법 (Euler, RK4)
+    \item 행성 운동 시뮬레이션
+    \item 진자 운동과 혼돈 (Chaotic Systems)
+    \item 라그랑지안과 해밀토니안 역학
+    \item \textbf{실습}: Euler vs RK4 비교, 행성 운동, 혼돈 진자, 라그랑지안/해밀토니안
+    \item \textbf{주요 개념}: ODEs, Numerical Integration, Chaotic Dynamics
+    \item \textbf{과제 3}: LLM을 활용한 역학 문제 풀이 및 시각화
+\end{itemize}
+
+\subsubsection*{Week 10: 전자기학 시뮬레이션}
+\begin{itemize}[noitemsep]
+    \item Maxwell 방정식의 수치 해법 (FDTD)
+    \item 전기장/자기장 계산 및 시각화
+    \item 라플라스 방정식과 정전기 문제
+    \item 전자기파 전파 시뮬레이션
+    \item \textbf{실습}: 전기장/자기장 기초, Maxwell 방정식 1D/2D, 전자기파 애니메이션
+    \item \textbf{주요 개념}: Maxwell Equations, FDTD, Vector Field Visualization
+    \item \textbf{과제 4}: 복잡한 전하 배치의 전기장 분석
+\end{itemize}
+
+\subsubsection*{Week 11: 양자역학 시뮬레이션}
+\begin{itemize}[noitemsep]
+    \item Schrödinger 방정식의 수치 해법
+    \item 파동함수 시각화
+    \item 터널링 효과 시뮬레이션
+    \item Finite Well, Harmonic Oscillator
+    \item \textbf{실습}: Schrödinger 방정식, 파동함수, 양자 터널링, 양자 우물
+    \item \textbf{주요 개념}: Quantum Mechanics, Wave Functions, Tunneling
+    \item \textbf{과제 5}: 다양한 포텐셜에서의 양자 상태 분석
+\end{itemize}
+
+\subsubsection*{Week 12: 통계물리 및 Monte Carlo 시뮬레이션}
+\begin{itemize}[noitemsep]
+    \item Monte Carlo 방법론
+    \item Ising 모델과 상전이
+    \item Metropolis-Hastings 알고리즘
+    \item 열역학적 성질 계산
+    \item \textbf{실습}: Random Walk, Monte Carlo로 π 추정, 1D/2D Ising 모델
+    \item \textbf{주요 개념}: Statistical Physics, Monte Carlo, Phase Transitions
+    \item \textbf{프로젝트 중간 점검}: Part II 실습 결과 공유
+\end{itemize}
+
+\subsection{Part III: Physics-Informed Neural Networks (Weeks 13-14)}
+
+\subsubsection*{Week 13: PINN 기초 이론 (ODE 편)}
+\begin{itemize}[noitemsep]
+    \item Physics-Informed Neural Networks 개념
+    \item 미분방정식을 Loss Function에 포함하기
+    \item Automatic Differentiation
+    \item PINN vs. 전통적 수치 해법 (RK4)
+    \item \textbf{실습}: 단순 ODE, 조화 진동자, 감쇠 진동자, 로렌츠 시스템
+    \item \textbf{주요 개념}: PINN, Physics Loss, Boundary Conditions
+    \item \textbf{참고 논문}: Raissi et al. (2019), Karniadakis et al. (2021)
+\end{itemize}
+
+\subsubsection*{Week 14: PINN 응용 - 편미분방정식}
+\begin{itemize}[noitemsep]
+    \item 1D/2D Heat Equation (열전도 방정식)
+    \item 1D/2D Wave Equation (파동 방정식)
+    \item Burgers 방정식 (비선형 PDE)
+    \item 복잡한 경계조건 처리
+    \item \textbf{실습}: PINN 기본 구조, Heat/Wave Equation, Burgers Equation
+    \item \textbf{주요 개념}: PDEs, PINN for Spatial-Temporal Problems
+    \item \textbf{과제 6}: PINN을 이용한 편미분방정식 해법 프로젝트
+\end{itemize}
+
+\subsection{Part IV: 최종 프로젝트 (Weeks 15-16)}
+
+\subsubsection*{Week 15: PINN 응용 II - 고급 주제 \& 최종 프로젝트 시작}
+\begin{itemize}[noitemsep]
+    \item Inverse Problems with PINN
+    \item Multi-fidelity Learning
+    \item Transfer Learning in PINN
+    \item 현대 물리학 연구에서의 AI 활용 사례
+    \item \textbf{최종 프로젝트 시작}: 팀별 주제 선정 및 계획 수립
+\end{itemize}
+
+\textbf{프로젝트 주제 예시}:
+\begin{enumerate}[noitemsep]
+    \item PINN을 이용한 Schrödinger 방정식 풀이
+    \item 복잡한 경계조건의 전자기 문제 해결
+    \item 상전이 시뮬레이션에 AI 적용
+    \item 실험 데이터 기반 물리량 예측
+    \item 역문제(Inverse Problem) 해결
+\end{enumerate}
+
+\subsubsection*{Week 16: 최종 프로젝트 발표 및 기말고사}
+\begin{itemize}[noitemsep]
+    \item 팀별 프로젝트 결과 발표 (20분)
+    \item 코드 리뷰 및 피드백
+    \item 기말 시험 (이론 + 실습 문제)
+    \item 강의 총평 및 향후 학습 방향 제시
+\end{itemize}
+
+\newpage
+
+\section{평가 방식}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{항목} & \textbf{비율} & \textbf{세부 내용} \\ \midrule
+과제 & 30\% & 주간 과제 6회 (각 5\%) \\
+중간 프로젝트 & 25\% & Part I 요약 발표 \\
+최종 프로젝트 & 25\% & 팀 프로젝트 (코드 + 보고서 + 발표) \\
+출석 및 참여 & 20\% & 수업 참여도 및 토론 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{과제 제출 방식}
+\begin{itemize}[noitemsep]
+    \item GitHub Repository를 통한 코드 제출
+    \item README.md에 실행 방법 및 결과 분석 포함
+\end{itemize}
+
+\subsection{최종 프로젝트 요구사항}
+\begin{itemize}[noitemsep]
+    \item \textbf{4명 1팀} 구성
+    \item GitHub을 통한 협업
+    \item 10-15페이지 보고서 (LaTeX 권장)
+    \item \textbf{팀별 발표}: 20분 발표 + 10분 질의응답
+    \item 재현 가능한 코드 및 데이터
+    \item 팀원 각자의 기여도 명시
+\end{itemize}
+
+\section{실습 환경}
+
+\subsection{필수 소프트웨어}
+\begin{verbatim}
+# Python 3.9 이상
+conda create -n compphys python=3.10
+conda activate compphys
+
+# 필수 패키지
+pip install numpy scipy matplotlib
+pip install pandas seaborn
+pip install jupyter notebook
+pip install torch torchvision  # PyTorch
+pip install anthropic  # Claude API
+
+# 선택 패키지
+pip install plotly  # 인터랙티브 시각화
+pip install sympy  # 심볼릭 계산
+\end{verbatim}
+
+\subsection{VS Code 확장 프로그램}
+\begin{itemize}[noitemsep]
+    \item Python
+    \item GitHub Copilot (선택)
+    \item LaTeX Workshop (보고서 작성용)
+\end{itemize}
+
+\subsection{Claude AI 설정}
+\begin{itemize}[noitemsep]
+    \item Claude.ai 계정 생성
+    \item API Key 발급 (실습용)
+    \item Prompt Engineering 실습
+\end{itemize}
+
+\section{주차별 읽기 자료}
+
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[Week 1-2] Newman, "Computational Physics", Chapter 1-2; Python for Physics 튜토리얼
+
+\item[Week 3-5] MIT 6.S191 Lecture Notes 1-3; Goodfellow et al., "Deep Learning", Chapter 6
+
+\item[Week 6-7] "Attention Is All You Need" - Vaswani et al. (2017); GPT-3 Paper (Brown et al., 2020)
+
+\item[Week 9-12] Newman, "Computational Physics", Chapter 8 (ODEs); Landau \& Lifshitz, Classical Mechanics (참조)
+
+\item[Week 13-14] Raissi et al., "Physics-informed neural networks" (2019); Karniadakis et al., "Physics-informed machine learning" (2021); Cuomo et al., "Scientific Machine Learning" (2022)
+\end{description}
+
+\section{선수 과목}
+
+\subsection*{필수}
+\begin{itemize}[noitemsep]
+    \item 일반물리학 I, II
+    \item 역학
+    \item 전자기학 I
+    \item Python 프로그래밍 기초
+\end{itemize}
+
+\subsection*{권장}
+\begin{itemize}[noitemsep]
+    \item 양자역학 I
+    \item 수리물리학
+    \item 통계물리
+\end{itemize}
+
+\section{유용한 링크}
+
+\subsection{강의 자료}
+\begin{itemize}[noitemsep]
+    \item \href{http://introtodeeplearning.com/}{MIT 6.S191 Course Website}
+    \item \href{https://github.com/maziarraissi/PINNs}{Physics-Informed Neural Networks GitHub}
+\end{itemize}
+
+\subsection{온라인 리소스}
+\begin{itemize}[noitemsep]
+    \item Physics-Informed DeepONet
+    \item \href{https://deepxde.readthedocs.io/}{DeepXDE Library}
+\end{itemize}
+
+\subsection{논문 저장소}
+\begin{itemize}[noitemsep]
+    \item \href{https://arxiv.org/list/physics.comp-ph/recent}{ArXiv: Physics + AI}
+    \item \href{https://arxiv.org/list/cs.LG/recent}{ArXiv: Machine Learning}
+\end{itemize}
+
+\section{과제 상세 정보}
+
+\begin{description}[style=nextline,leftmargin=0pt]
+\item[과제 1: 데이터 피팅 (Week 2)] 실험 데이터를 제공하고, 다양한 회귀 모델로 피팅 후 최적 모델 선택
+
+\item[과제 2: Optimizer 비교 (Week 4)] SGD, Momentum, Adam 등의 optimizer를 동일한 문제에 적용하여 성능 비교
+
+\item[과제 3: 역학 시뮬레이션 (Week 9)] LLM을 활용하여 복잡한 역학 문제 시뮬레이션 코드 작성
+
+\item[과제 4: 전자기 시각화 (Week 10)] 주어진 전하 배치의 전기장을 계산하고 아름다운 시각화 생성
+
+\item[과제 5: 양자 시뮬레이션 (Week 11)] 다양한 포텐셜에서의 양자 상태 계산 및 분석
+
+\item[과제 6: PINN 프로젝트 (Week 14)] 선택한 편미분방정식을 PINN으로 풀고 전통 방법과 비교
+\end{description}
+
+\section{학습 성과}
+
+본 강의를 성공적으로 이수한 학생은:
+
+\begin{enumerate}[noitemsep]
+    \item Neural Network의 작동 원리를 수학적으로 이해
+    \item LLM을 활용한 효율적인 코딩 능력 보유
+    \item 물리 문제를 AI로 해결하는 실전 경험
+    \item PINN을 이용한 미분방정식 해법 습득
+    \item 최신 AI 기술의 물리학 응용 능력
+    \item GitHub을 통한 협업 및 코드 관리 능력
+    \item 연구 논문 작성 및 발표 능력
+\end{enumerate}
+
+\section{강의 철학}
+
+\begin{quote}
+\textit{물리학자는 자연을 이해하는 사람이며,\\
+계산물리학자는 자연을 시뮬레이션하는 사람이고,\\
+AI 시대의 물리학자는 자연을 학습하고 예측하는 사람입니다.}
+\end{quote}
+
+본 강의는 단순히 AI 도구 사용법을 가르치는 것이 아니라, \textbf{물리적 직관과 AI 기술을 융합하여 새로운 문제 해결 방식}을 배우는 것을 목표로 합니다.
+
+\section{연락처 및 Office Hours}
+
+\begin{tabular}{ll}
+\textbf{강의실}: & TBA \\
+\textbf{실습실}: & TBA \\
+\textbf{Office Hours}: & 수요일 14:00-16:00 (사전 예약 권장) \\
+\textbf{이메일}: & TBA \\
+\textbf{강의 GitHub}: & TBA \\
+\textbf{Q\&A}: & Slack 채널 운영 \\
+\end{tabular}
+
+\section{주의사항}
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{학술 윤리}: AI 도구 사용 시 출처를 명확히 밝혀야 합니다
+    \item \textbf{코드 공유}: 과제는 개인 작업이며, 코드 복사는 금지됩니다
+    \item \textbf{출석}: 실습 중심 강의이므로 출석이 매우 중요합니다
+    \item \textbf{준비물}: 노트북 필수 (실습용)
+\end{enumerate}
+
+\section{학기말 기대 성과물}
+
+\subsection{개인}
+\begin{itemize}[noitemsep]
+    \item 6개의 과제 포트폴리오
+    \item 개인 GitHub Repository
+    \item 물리 시뮬레이션 코드 모음
+\end{itemize}
+
+\subsection{팀}
+\begin{itemize}[noitemsep]
+    \item 최종 프로젝트 보고서
+    \item 발표 자료
+    \item 오픈소스 코드 (GitHub)
+\end{itemize}
+
+\section{추가 학습 자료 (선택)}
+
+\subsection{온라인 강좌}
+\begin{itemize}[noitemsep]
+    \item Andrew Ng's Machine Learning Course (Coursera)
+    \item Fast.ai Practical Deep Learning
+    \item Stanford CS231n (Convolutional Neural Networks)
+\end{itemize}
+
+\subsection{유튜브 채널}
+\begin{itemize}[noitemsep]
+    \item 3Blue1Brown (Neural Networks Series)
+    \item Two Minute Papers
+    \item Arxiv Insights
+\end{itemize}
+
+\subsection{책}
+\begin{itemize}[noitemsep]
+    \item \textit{Neural Networks and Deep Learning} by Michael Nielsen (무료)
+    \item \textit{Dive into Deep Learning} by Zhang et al. (무료)
+    \item \textit{Computational Physics} by Giordano \& Nakanishi
+\end{itemize}
+
+\section{강의 계획 변경}
+
+\begin{itemize}[noitemsep]
+    \item 본 계획서는 학습 진도에 따라 조정될 수 있습니다
+    \item 중요한 변경사항은 최소 1주 전에 공지됩니다
+    \item 학생 피드백을 반영하여 실습 내용을 조정할 수 있습니다
+\end{itemize}
+
+\vspace{1cm}
+
+\section*{마치며}
+
+이 강의를 통해 여러분은 \textbf{21세기 물리학자에게 필수적인 AI 도구}를 마스터하게 될 것입니다. 단순히 코드를 실행하는 것을 넘어, \textbf{물리적 직관과 AI 기술을 결합하여 창의적인 문제 해결}을 할 수 있기를 기대합니다.
+
+함께 흥미로운 학기를 만들어갑시다!
+
+\vspace{1cm}
+
+\noindent\textbf{Last Updated}: 2025-11-20\\
+\textbf{Version}: 1.0\\
+\textbf{Instructor}: TBA
+
+\end{document}

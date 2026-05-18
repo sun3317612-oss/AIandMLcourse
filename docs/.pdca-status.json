@@ -1,0 +1,41 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-02-28T06:13:24.502Z",
+  "activeFeatures": [
+    "week13"
+  ],
+  "primaryFeature": "week13",
+  "features": {
+    "week13": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-28T06:13:24.502Z",
+        "lastUpdated": "2026-02-28T06:13:24.502Z"
+      },
+      "lastFile": "E:\\dback\\수업\\2026_1\\aicoursework\\week13\\02_harmonic_oscillator.py"
+    }
+  },
+  "pipeline": {
+    "currentPhase": 1,
+    "level": "Dynamic",
+    "phaseHistory": []
+  },
+  "session": {
+    "startedAt": "2026-02-28T05:23:00.225Z",
+    "onboardingCompleted": false,
+    "lastActivity": "2026-02-28T06:13:24.502Z"
+  },
+  "history": [
+    {
+      "timestamp": "2026-02-28T06:13:24.502Z",
+      "feature": "week13",
+      "phase": "do",
+      "action": "updated"
+    }
+  ]
+}

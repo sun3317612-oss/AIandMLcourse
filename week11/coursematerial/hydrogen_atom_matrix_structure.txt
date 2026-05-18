@@ -1,0 +1,112 @@
+================================================================================
+3D Hydrogen Atom Hamiltonian Matrix Structure Analysis
+================================================================================
+
+Physical System:
+  Hydrogen atom in 3D with Coulomb potential
+  V(r) = -e^2/r where r = sqrt(x^2 + y^2 + z^2)
+  Atomic units: hbar = m = e = 1
+
+Grid Configuration:
+  Spatial range: [-8.00, 8.00] Bohr in each dimension
+  Grid size: 30 x 30 x 30
+  Grid spacing: dx = dy = dz = 0.5517 Bohr
+  Total grid points: 27,000
+  Matrix size: 27,000 x 27,000
+  Matrix elements (dense): 729,000,000
+  Memory (dense): 5561.8 MB
+
+Matrix Structure:
+  Type: 7-point stencil (sparse)
+  Center point + 6 neighbors (±x, ±y, ±z)
+  Non-zero elements: 183,600
+  Sparsity: 99.97%
+  Memory (sparse): 1.40 MB
+
+Hamiltonian Construction:
+  H = T + V
+  T: Kinetic energy (3D Laplacian)
+  V: Coulomb potential (diagonal)
+
+Finite Difference Coefficients:
+  T[i,i] (center): 6 x hbar^2/(2m x dx^2) = 9.8555
+  T[i,i±1] (neighbors): -hbar^2/(2m x dx^2) = -1.6426
+
+Energy Eigenvalues (lowest 10):
+State    E (Ha)         E (eV)       Degeneracy     
+-------------------------------------------------------
+  0         -0.466913     -12.7052   1s             
+  1         -0.119361      -3.2479   2s/2p          
+  2         -0.119361      -3.2479   2p (deg 2)     
+  3         -0.119361      -3.2479   2p (deg 3)     
+  4         -0.106849      -2.9075   2p (deg 1)     
+  5         -0.013246      -0.3604   3s/3p/3d       
+  6         -0.013246      -0.3604   3s/3p/3d       
+  7          0.003779       0.1028   3s/3p/3d       
+  8          0.003779       0.1028   3s/3p/3d       
+  9          0.037649       1.0245   3s/3p/3d       
+
+Comparison with Theory:
+n      Theory (Ha)    Computed (Ha)    Error %   
+--------------------------------------------------
+  1       -0.500000        -0.466913       6.62%
+  2       -0.125000        -0.119361       4.51%
+
+Theoretical Hydrogen Energies (exact):
+n      E (Ha)         E (eV)       States    
+---------------------------------------------
+  1       -0.500000     -13.6055   1         
+  2       -0.125000      -3.4014   4         
+  3       -0.055556      -1.5117   9         
+  4       -0.031250      -0.8503   16        
+  5       -0.020000      -0.5442   25        
+
+================================================================================
+Notes:
+================================================================================
+- The computed energies may differ from theoretical values due to:
+  1. Finite grid resolution (discretization error)
+     * Finer grid -> better accuracy
+     * dx = 0.5517 Bohr is used
+  2. Softening parameter epsilon = 0.05 Bohr
+     * Avoids singularity at r=0
+     * Smaller epsilon -> closer to true Coulomb
+  3. Finite box size: [-8, 8] Bohr
+     * Wavefunctions decay but don't reach zero at boundary
+     * Larger box -> less boundary effect
+  4. 3D Cartesian grid vs spherical symmetry
+     * Spherical coordinates would be more natural
+     * But Cartesian is simpler to implement
+
+- Expected accuracy:
+  * Ground state (1s): ~5-15% error typical for this grid
+  * Excited states (2s, 2p): ~5-10% error
+  * Higher states: larger errors due to:
+    - More extended wavefunctions
+    - Box boundary effects
+    - Level mixing in Cartesian grid
+
+- Degeneracy in Cartesian vs Spherical:
+  * Pure Coulomb potential has spherical symmetry
+  * In spherical coords: n^2-fold degeneracy
+    (e.g., n=2 has 2s, 2px, 2py, 2pz = 4 states)
+  * Cartesian grid breaks this symmetry slightly
+  * Degeneracies should still appear (within ~0.001 Ha)
+
+- Why higher states have large apparent errors:
+  * States 4+ may not correspond to bound hydrogen states
+  * They might be:
+    - Box states (particle in finite box)
+    - Continuum states (E > 0)
+    - Mixed states due to Cartesian grid
+  * Only compare states 0-3 with n=1,2 hydrogen levels
+
+- Sparse matrix structure:
+  * 7-point stencil creates 7 diagonals in the matrix
+  * Band positions: center, +/-1, +/-Nz, +/-(Ny*Nz)
+  * With Nz=30, Ny*Nz=900
+  * This is why you see multiple diagonal bands!
+
+- Sparse matrix methods essential for computational efficiency
+  * Dense: 5561.8 MB
+  * Sparse: 1.40 MB (3970x reduction!)
